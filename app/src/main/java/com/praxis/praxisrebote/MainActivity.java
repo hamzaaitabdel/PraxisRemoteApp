@@ -1,9 +1,6 @@
 package com.praxis.praxisrebote;
 
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
@@ -13,10 +10,8 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -30,9 +25,7 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -48,6 +41,7 @@ import me.tankery.lib.circularseekbar.CircularSeekBar;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static MainActivity CONTEXT;
     private String deviceName = null;
     private String deviceAddress;
     public static Handler handler;
@@ -64,14 +58,22 @@ public class MainActivity extends AppCompatActivity {
     public Button join_1;
     public Button join_2;
     public Button join_3;
-    public class SelectJoinListner implements View.OnTouchListener{
+    public static MainActivity getContext() {
+        return CONTEXT;
+    }
+    public class SelectJoinListener implements View.OnTouchListener{
         private String join;
-        SelectJoinListner(String join){
+        SelectJoinListener(String join){
             this.join=join;
         }
         @Override
         public boolean onTouch(View view, MotionEvent motionEvent) {
-            sendMessage(join,mGeomagnetic[0]);
+            sendMessage(join,mGeomagnetic);
+            try{
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             return false;
         }
     }
@@ -88,9 +90,9 @@ public class MainActivity extends AppCompatActivity {
             bg.setBackgroundColor(R.color.red);
         }
     }
-    public void sendMessage(String join,float value){
+    public void sendMessage(String join,float[] value){
         String cmdText="";
-        cmdText = "<"+join+"_changed to:"+value+"> \n";
+        cmdText = ""+value[1]+"\n";
         connectedThread.write(cmdText);
         //Toast.makeText(this, selected_join+"is now selected and the data:"+value+" is sent", Toast.LENGTH_SHORT).show();
         Log.i("Data",cmdText);
@@ -119,23 +121,24 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         buttonConnect=findViewById(R.id.connect);
+        CONTEXT = this;
         // UI Initialization
         join_1=findViewById(R.id.join_1);
-        join_2=findViewById(R.id.join_1);
-        join_3=findViewById(R.id.join_1);
+        join_2=findViewById(R.id.join_2);
+        join_3=findViewById(R.id.join_3);
 
-        join_1.setOnTouchListener(new SelectJoinListner("join_1"));
-        join_2.setOnTouchListener(new SelectJoinListner("join_2"));
-        join_3.setOnTouchListener(new SelectJoinListner("join_3"));
+        join_1.setOnTouchListener(new SelectJoinListener("join_1"));
+        join_2.setOnTouchListener(new SelectJoinListener("join_2"));
+        join_3.setOnTouchListener(new SelectJoinListener("join_3"));
 
 
         SensorEventListener mMagnetometerListener = new SensorEventListener(){
             public void onAccuracyChanged(Sensor sensor, int accuracy) {}
 
             public void onSensorChanged(SensorEvent event) {
-                Log.i("data","onSensorChanged");
                 if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD){
                     mGeomagnetic = event.values.clone();
+                    Log.i("data",mGeomagnetic[0]+" "+mGeomagnetic[0]+" "+mGeomagnetic[0]);
                 }
             }
         };

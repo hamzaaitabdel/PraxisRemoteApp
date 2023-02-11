@@ -17,6 +17,7 @@
             android:textSize="20sp"
             android:textAlignment="center"
             android:layout_height="wrap_content"
+            android:background="@color/red"
             android:id="@+id/ba_text"></TextView>
     </LinearLayout>
     <RelativeLayout
@@ -34,33 +35,35 @@
 
         <Button
             android:id="@+id/join_2"
-            android:background="@drawable/round_button"
             android:layout_width="80dp"
             android:layout_height="80dp"
             android:layout_alignRight="@id/robot"
             android:layout_alignBottom="@+id/robot"
             android:layout_marginRight="150dp"
-            android:layout_marginBottom="480dp"/>
+            android:layout_marginBottom="480dp"
+            android:background="@drawable/round_button" />
+
         <Button
             android:id="@+id/join_1"
-            android:background="@drawable/round_button"
             android:layout_width="80dp"
             android:layout_height="80dp"
-            android:layout_alignBottom="@+id/robot"
             android:layout_alignRight="@id/robot"
+            android:layout_alignBottom="@+id/robot"
+            android:layout_marginRight="57dp"
             android:layout_marginBottom="280dp"
-            android:layout_marginRight="57dp"/>
+            android:background="@drawable/round_button" />
+
         <Button
             android:id="@+id/join_3"
-            android:background="@drawable/round_button"
             android:layout_width="80dp"
             android:layout_height="80dp"
-            android:progress="10"
-            android:max="100"
-            android:layout_alignBottom="@+id/robot"
             android:layout_alignRight="@id/robot"
+            android:layout_alignBottom="@+id/robot"
+            android:layout_marginRight="280dp"
             android:layout_marginBottom="310dp"
-            android:layout_marginRight="280dp"/>
+            android:background="@drawable/round_button"
+            android:max="100"
+            android:progress="10" />
 
         <Button
             android:id="@+id/connect"
