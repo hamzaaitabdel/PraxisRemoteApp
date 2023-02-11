@@ -37,9 +37,13 @@ import java.util.UUID;
 
 import static android.content.ContentValues.TAG;
 
+import com.praxis.praxisrebote.Listeners.Orientation;
+import com.praxis.praxisrebote.Listeners.OrientationListener;
+import com.praxis.praxisrebote.Listeners.OrientationProvider;
+
 import me.tankery.lib.circularseekbar.CircularSeekBar;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements OrientationListener {
 
     private static MainActivity CONTEXT;
     private String deviceName = null;
@@ -58,9 +62,39 @@ public class MainActivity extends AppCompatActivity {
     public Button join_1;
     public Button join_2;
     public Button join_3;
+
+    private OrientationProvider provider;
     public static MainActivity getContext() {
         return CONTEXT;
     }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d("Level", "Level resumed");
+        provider = OrientationProvider.getInstance();
+        // chargement des effets sonores
+        // orientation manager
+        if (provider.isSupported()) {
+            provider.startListening(this);
+        } else {
+            Toast.makeText(this, "not supported", Toast.LENGTH_LONG).show();
+        }
+    }
+    @Override
+    public void onOrientationChanged(Orientation orientation, float pitch, float roll, float balance) {
+        Log.i("akhir data",pitch+" "+roll+""+balance);
+    }
+
+    @Override
+    public void onCalibrationSaved(boolean success) {
+
+    }
+
+    @Override
+    public void onCalibrationReset(boolean success) {
+
+    }
+
     public class SelectJoinListener implements View.OnTouchListener{
         private String join;
         SelectJoinListener(String join){
@@ -132,7 +166,7 @@ public class MainActivity extends AppCompatActivity {
         join_3.setOnTouchListener(new SelectJoinListener("join_3"));
 
 
-        SensorEventListener mMagnetometerListener = new SensorEventListener(){
+        /*SensorEventListener mMagnetometerListener = new SensorEventListener(){
             public void onAccuracyChanged(Sensor sensor, int accuracy) {}
 
             public void onSensorChanged(SensorEvent event) {
@@ -155,15 +189,11 @@ public class MainActivity extends AppCompatActivity {
             // Show progree and connection status
 
 
-            /*
-            This is the most important piece of code. When "deviceName" is found
-            the code will call a new thread to create a bluetooth connection to the
-            selected device (see the thread code below)
-             */
+
             BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
             createConnectThread = new CreateConnectThread(this,bluetoothAdapter, deviceAddress);
             createConnectThread.start();
-        }
+        }*/
 
         /*
         Second most important piece of Code. GUI Handler
