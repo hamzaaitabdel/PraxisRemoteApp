@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity implements OrientationListen
     private CircularSeekBar seekBar;
     private String selected_join="";
     private SensorManager sensorManager;
-
+    private String board_state="";
     public Button join_1;
     public Button join_2;
     public Button join_3;
@@ -81,8 +81,11 @@ public class MainActivity extends AppCompatActivity implements OrientationListen
         }
     }
     @Override
-    public void onOrientationChanged(Orientation orientation, float pitch, float roll, float balance) {
+    public void onOrientationChanged( float pitch, float roll, float balance) {
         Log.i("akhir data",pitch+" "+roll+""+balance);
+        mGeomagnetic[0]=pitch;
+        mGeomagnetic[1]=roll;
+        mGeomagnetic[2]=balance;
     }
 
     @Override
@@ -102,9 +105,20 @@ public class MainActivity extends AppCompatActivity implements OrientationListen
         }
         @Override
         public boolean onTouch(View view, MotionEvent motionEvent) {
-            sendMessage(join,mGeomagnetic);
-            try{
-                Thread.sleep(10);
+            String toSend="";
+            if(Math.abs(mGeomagnetic[1])>2){
+                if(mGeomagnetic[1]>2)
+                    toSend="+";//increase the value
+                else
+                    toSend="-";//decrase the value
+            }
+            else{
+                toSend="x";//do nothing-> keep the current value
+            }
+            if(board_state.equals("FREI"))
+                sendMessage(join,toSend);
+            try {
+                Thread.sleep(100);//todo or maybe 200
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -118,15 +132,16 @@ public class MainActivity extends AppCompatActivity implements OrientationListen
         if(deviceName !=null){
             text.setText(deviceName+" is connected.");
             bg.setBackgroundColor(R.color.teal_700);
+
         }
         else{
             text.setText("no device is connected.");
             bg.setBackgroundColor(R.color.red);
         }
     }
-    public void sendMessage(String join,float[] value){
+    public void sendMessage(String join,String value){
         String cmdText="";
-        cmdText = ""+value[1]+"\n";
+        cmdText = ""+value+"\n";
         connectedThread.write(cmdText);
         //Toast.makeText(this, selected_join+"is now selected and the data:"+value+" is sent", Toast.LENGTH_SHORT).show();
         Log.i("Data",cmdText);
@@ -165,21 +180,6 @@ public class MainActivity extends AppCompatActivity implements OrientationListen
         join_2.setOnTouchListener(new SelectJoinListener("join_2"));
         join_3.setOnTouchListener(new SelectJoinListener("join_3"));
 
-
-        /*SensorEventListener mMagnetometerListener = new SensorEventListener(){
-            public void onAccuracyChanged(Sensor sensor, int accuracy) {}
-
-            public void onSensorChanged(SensorEvent event) {
-                if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD){
-                    mGeomagnetic = event.values.clone();
-                    Log.i("data",mGeomagnetic[0]+" "+mGeomagnetic[0]+" "+mGeomagnetic[0]);
-                }
-            }
-        };
-        sensorManager = (SensorManager) this.getSystemService(Context.SENSOR_SERVICE);
-        //sensorManager.registerListener(mAccelerometerListener, sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_UI);
-        sensorManager.registerListener(mMagnetometerListener, sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD), SensorManager.SENSOR_DELAY_UI);
-        // If a bluetooth device has been selected from SelectDeviceActivity
         deviceName = getIntent().getStringExtra("deviceName");
         update_stat_bar();
         Log.i("debug_1",deviceName+"");
@@ -193,45 +193,13 @@ public class MainActivity extends AppCompatActivity implements OrientationListen
             BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
             createConnectThread = new CreateConnectThread(this,bluetoothAdapter, deviceAddress);
             createConnectThread.start();
-        }*/
 
-        /*
-        Second most important piece of Code. GUI Handler
-         */
+
+        }
         handler = new Handler(Looper.getMainLooper()) {
             @Override
             public void handleMessage(Message msg) {
-//                switch (msg.what){
-//                    case CONNECTING_STATUS:
-//                        switch(msg.arg1){
-//                            case 1:
-//                                toolbar.setSubtitle("Connected to " + deviceName);
-//                                progressBar.setVisibility(View.GONE);
-//                                buttonConnect.setEnabled(true);
-//                                buttonToggle.setEnabled(true);
-//                                break;
-//                            case -1:
-//                                toolbar.setSubtitle("Device fails to connect");
-//                                progressBar.setVisibility(View.GONE);
-//                                buttonConnect.setEnabled(true);
-//                                break;
-//                        }
-//                        break;
-//
-//                    case MESSAGE_READ:
-//                        String arduinoMsg = msg.obj.toString(); // Read message from Arduino
-//                        switch (arduinoMsg.toLowerCase()){
-//                            case "led is turned on":
-//                                imageView.setBackgroundColor(getResources().getColor(R.color.colorOn));
-//                                textViewInfo.setText("Arduino Message : " + arduinoMsg);
-//                                break;
-//                            case "led is turned off":
-//                                imageView.setBackgroundColor(getResources().getColor(R.color.colorOff));
-//                                textViewInfo.setText("Arduino Message : " + arduinoMsg);
-//                                break;
-//                        }
-//                        break;
-//                }
+                board_state=msg.toString().trim();
             }
         };
 

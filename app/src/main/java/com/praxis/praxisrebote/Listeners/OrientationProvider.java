@@ -18,42 +18,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-/*
- *  This file is part of Level (an Android Bubble Level).
- *  <https://github.com/avianey/Level>
- *
- *  Copyright (C) 2014 Antoine Vianey
- *
- *  Level is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  Level is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with Level. If not, see <http://www.gnu.org/licenses/>
- */
 public class OrientationProvider implements SensorEventListener {
 
     private static final int MIN_VALUES = 20;
 
-    /**
-     * Calibration
-     */
-    private static final String SAVED_PITCH = "pitch.";
-    private static final String SAVED_ROLL = "roll.";
-    private static final String SAVED_BALANCE = "balance.";
+
     private static OrientationProvider provider;
-    /**
-     * Calibration
-     */
-    private final float[] calibratedPitch = new float[5];
-    private final float[] calibratedRoll = new float[5];
-    private final float[] calibratedBalance = new float[5];
+
     /**
      * Rotation Matrix
      */
@@ -87,8 +58,6 @@ public class OrientationProvider implements SensorEventListener {
     private float oldBalance;
     private float minStep = 360;
     private float refValues = 0;
-    private Orientation orientation;
-    private boolean locked;
 
     public OrientationProvider() {
 
@@ -158,20 +127,6 @@ public class OrientationProvider implements SensorEventListener {
      */
     public void startListening(OrientationListener orientationListener) {
         final AppCompatActivity context = MainActivity.getContext();
-        // load calibration
-        calibrating = false;
-        Arrays.fill(calibratedPitch, 0);
-        Arrays.fill(calibratedRoll, 0);
-        Arrays.fill(calibratedBalance, 0);
-        SharedPreferences prefs = context.getPreferences(Context.MODE_PRIVATE);
-        for (Orientation orientation : Orientation.values()) {
-            calibratedPitch[orientation.ordinal()] =
-                    prefs.getFloat(SAVED_PITCH + orientation.toString(), 0);
-            calibratedRoll[orientation.ordinal()] =
-                    prefs.getFloat(SAVED_ROLL + orientation.toString(), 0);
-            calibratedBalance[orientation.ordinal()] =
-                    prefs.getFloat(SAVED_BALANCE + orientation.toString(), 0);
-        }
         // register listener and start listening
         sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         running = true;
@@ -234,86 +189,14 @@ public class OrientationProvider implements SensorEventListener {
             }
         }
 
-        if (!locked || orientation == null) {
-            if (pitch < -45 && pitch > -135) {
-                // top side up
-                orientation = Orientation.TOP;
-            } else if (pitch > 45 && pitch < 135) {
-                // bottom side up
-                orientation = Orientation.BOTTOM;
-            } else if (roll > 45) {
-                // right side up
-                orientation = Orientation.RIGHT;
-            } else if (roll < -45) {
-                // left side up
-                orientation = Orientation.LEFT;
-            } else {
-                // landing
-                orientation = Orientation.LANDING;
-            }
-        }
 
-        if (calibrating) {
-            calibrating = false;
-            Editor editor = MainActivity.getContext().getPreferences(Context.MODE_PRIVATE).edit();
-            editor.putFloat(SAVED_PITCH + orientation.toString(), pitch);
-            editor.putFloat(SAVED_ROLL + orientation.toString(), roll);
-            editor.putFloat(SAVED_BALANCE + orientation.toString(), balance);
-            final boolean success = editor.commit();
-            if (success) {
-                calibratedPitch[orientation.ordinal()] = pitch;
-                calibratedRoll[orientation.ordinal()] = roll;
-                calibratedBalance[orientation.ordinal()] = balance;
-            }
-            listener.onCalibrationSaved(success);
-            pitch = 0;
-            roll = 0;
-            balance = 0;
-        } else {
-            pitch -= calibratedPitch[orientation.ordinal()];
-            roll -= calibratedRoll[orientation.ordinal()];
-            balance -= calibratedBalance[orientation.ordinal()];
-        }
+
 
         // propagation of the orientation
-        Log.i("wach1",orientation+" "+pitch+" "+roll+" "+balance);
-        listener.onOrientationChanged(orientation, pitch, roll, balance);
+        Log.i("wach1",pitch+" "+roll+" "+balance);
+        listener.onOrientationChanged(pitch, roll, balance);
     }
 
-    /**
-     * Tell the provider to restore the calibration
-     * to the default factory values
-     */
-    public final void resetCalibration() {
-        boolean success = false;
-        try {
-            success = MainActivity.getContext().getPreferences(
-                    Context.MODE_PRIVATE).edit().clear().commit();
-        } catch (Exception e) {
-        }
-        if (success) {
-            Arrays.fill(calibratedPitch, 0);
-            Arrays.fill(calibratedRoll, 0);
-            Arrays.fill(calibratedBalance, 0);
-        }
-        if (listener != null) {
-            listener.onCalibrationReset(success);
-        }
-    }
-
-
-    /**
-     * Tell the provider to save the calibration
-     * The calibration is actually saved on the next
-     * sensor change event
-     */
-    public final void saveCalibration() {
-        calibrating = true;
-    }
-
-    public void setLocked(boolean locked) {
-        this.locked = locked;
-    }
 
     /**
      * Return the minimal sensor step
