@@ -115,13 +115,8 @@ public class MainActivity extends AppCompatActivity implements OrientationListen
             else{
                 toSend="x";//do nothing-> keep the current value
             }
-            if(board_state.equals("FREI"))
-                sendMessage(join,toSend);
-            try {
-                Thread.sleep(100);//todo or maybe 200
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+                sendMessage(join,toSend+"\n");
+
             return false;
         }
     }
@@ -199,7 +194,8 @@ public class MainActivity extends AppCompatActivity implements OrientationListen
         handler = new Handler(Looper.getMainLooper()) {
             @Override
             public void handleMessage(Message msg) {
-                board_state=msg.toString().trim();
+                Log.i("msgg",msg.getData().toString().trim());
+                board_state=msg.getData().toString().trim();
             }
         };
 
